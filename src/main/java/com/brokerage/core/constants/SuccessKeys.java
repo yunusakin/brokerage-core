@@ -20,6 +20,7 @@ public final class SuccessKeys {
      */
     public static final String ORDER_CREATED = "success.order.created";
     public static final String ORDER_CANCELED = "success.order.canceled";
+    public static final String ORDER_MATCHED = "success.order.matched";
 
     /**
      *  Asset

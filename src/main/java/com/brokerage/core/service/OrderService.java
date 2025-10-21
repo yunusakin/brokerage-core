@@ -98,6 +98,43 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional
+    public OrderResponse matchOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.ORDER_NOT_FOUND));
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BusinessException(ErrorKeys.ORDER_NOT_PENDING);
+        }
+
+        if (order.getOrderSide() == OrderSide.BUY) {
+            Asset asset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())
+                    .orElseGet(() -> Asset.builder()
+                            .customerId(order.getCustomerId())
+                            .assetName(order.getAssetName())
+                            .size(BigDecimal.ZERO)
+                            .usableSize(BigDecimal.ZERO)
+                            .build());
+
+            asset.setSize(asset.getSize().add(order.getSize()));
+            asset.setUsableSize(asset.getUsableSize().add(order.getSize()));
+            assetRepository.save(asset);
+        } else {
+            Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), TRY_ASSET)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.TRY_NOT_FOUND));
+
+            BigDecimal totalIncome = order.getSize().multiply(order.getPrice());
+            tryAsset.setSize(tryAsset.getSize().add(totalIncome));
+            tryAsset.setUsableSize(tryAsset.getUsableSize().add(totalIncome));
+            assetRepository.save(tryAsset);
+        }
+
+        order.setStatus(OrderStatus.MATCHED);
+        orderRepository.save(order);
+
+        return orderMapper.toDto(order);
+    }
+
     public List<OrderResponse> listOrders(ListOrdersRequest request) {
         var orders = orderRepository.findByCustomerIdAndCreateDateBetween(request.customerId(), request.start(), request.end());
         return orderMapper.toDtoList(orders);
