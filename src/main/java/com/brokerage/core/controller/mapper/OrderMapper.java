@@ -1,7 +1,7 @@
 package com.brokerage.core.controller.mapper;
 
-import com.brokerage.core.controller.dto.OrderRequestDto;
-import com.brokerage.core.controller.dto.OrderResponseDto;
+import com.brokerage.core.controller.dto.CreateOrderRequest;
+import com.brokerage.core.controller.dto.OrderResponse;
 import com.brokerage.core.model.Order;
 import org.mapstruct.*;
 
@@ -12,9 +12,9 @@ public interface OrderMapper {
 
     @Mapping(target = "status", constant = "PENDING")
     @Mapping(target = "createDate", expression = "java(java.time.LocalDateTime.now())")
-    Order toEntity(OrderRequestDto dto);
+    Order toEntity(CreateOrderRequest dto);
 
-    OrderResponseDto toDto(Order order);
+    OrderResponse toDto(Order order);
 
-    List<OrderResponseDto> toDtoList(List<Order> orders);
+    List<OrderResponse> toDtoList(List<Order> orders);
 }

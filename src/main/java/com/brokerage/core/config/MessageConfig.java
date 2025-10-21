@@ -10,14 +10,14 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import java.util.Locale;
 
 @Configuration
-public class MessageSourceConfig {
+public class MessageConfig {
 
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource source = new ReloadableResourceBundleMessageSource();
         source.setBasename("classpath:messages");
         source.setDefaultEncoding("UTF-8");
-        source.setFallbackToSystemLocale(false);
+        source.setDefaultLocale(Locale.ENGLISH);
         return source;
     }
 

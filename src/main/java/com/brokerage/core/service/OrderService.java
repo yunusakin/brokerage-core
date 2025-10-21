@@ -1,7 +1,14 @@
 package com.brokerage.core.service;
 
+import com.brokerage.core.constants.ErrorKeys;
+import com.brokerage.core.controller.dto.CreateOrderRequest;
+import com.brokerage.core.controller.dto.ListOrdersRequest;
+import com.brokerage.core.controller.dto.OrderResponse;
+import com.brokerage.core.controller.mapper.OrderMapper;
 import com.brokerage.core.enumaration.OrderSide;
 import com.brokerage.core.enumaration.OrderStatus;
+import com.brokerage.core.exception.BusinessException;
+import com.brokerage.core.exception.ResourceNotFoundException;
 import com.brokerage.core.model.*;
 import com.brokerage.core.repository.AssetRepository;
 import com.brokerage.core.repository.OrderRepository;
@@ -20,25 +27,32 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final AssetRepository assetRepository;
+    private final OrderMapper orderMapper;
 
     private static final String TRY_ASSET = "TRY";
 
     @Transactional
-    public Order createOrder(UUID customerId, String assetName, OrderSide side, BigDecimal size, BigDecimal price) {
+    public OrderResponse createOrder(CreateOrderRequest dto) {
+        UUID customerId = dto.customerId();
+        String assetName = dto.assetName();
+        BigDecimal size = dto.size();
+        BigDecimal price = dto.price();
+        OrderSide side = dto.orderSide();
+
         if (side == OrderSide.BUY) {
-            Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(customerId, TRY_ASSET).orElseThrow(() -> new IllegalStateException("TRY balance not found"));
+            Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(customerId, TRY_ASSET)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.TRY_NOT_FOUND));
             BigDecimal totalCost = size.multiply(price);
             if (tryAsset.getUsableSize().compareTo(totalCost) < 0) {
-                throw new IllegalStateException("Insufficient TRY balance");
+                throw new BusinessException(ErrorKeys.INSUFFICIENT_BALANCE);
             }
             tryAsset.setUsableSize(tryAsset.getUsableSize().subtract(totalCost));
             assetRepository.save(tryAsset);
-
         } else {
             Asset asset = assetRepository.findByCustomerIdAndAssetName(customerId, assetName)
-                    .orElseThrow(() -> new IllegalStateException("Asset not found: " + assetName));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.ASSET_NOT_FOUND));
             if (asset.getUsableSize().compareTo(size) < 0) {
-                throw new IllegalStateException("Insufficient asset balance");
+                throw new BusinessException(ErrorKeys.INSUFFICIENT_BALANCE);
             }
             asset.setUsableSize(asset.getUsableSize().subtract(size));
             assetRepository.save(asset);
@@ -54,27 +68,28 @@ public class OrderService {
                 .createDate(LocalDateTime.now())
                 .build();
 
-        return orderRepository.save(order);
+        orderRepository.save(order);
+        return orderMapper.toDto(order);
     }
 
     @Transactional
     public void cancelOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.ORDER_NOT_FOUND));
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Only PENDING orders can be canceled");
+            throw new BusinessException(ErrorKeys.ORDER_NOT_PENDING);
         }
 
         if (order.getOrderSide() == OrderSide.BUY) {
             Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), TRY_ASSET)
-                    .orElseThrow(() -> new IllegalStateException("TRY balance not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.TRY_NOT_FOUND));
             BigDecimal refund = order.getSize().multiply(order.getPrice());
             tryAsset.setUsableSize(tryAsset.getUsableSize().add(refund));
             assetRepository.save(tryAsset);
         } else {
             Asset asset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())
-                    .orElseThrow(() -> new IllegalStateException("Asset not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.ASSET_NOT_FOUND));
             asset.setUsableSize(asset.getUsableSize().add(order.getSize()));
             assetRepository.save(asset);
         }
@@ -83,11 +98,12 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public List<Order> listOrders(UUID customerId, LocalDateTime start, LocalDateTime end) {
-        return orderRepository.findByCustomerIdAndCreateDateBetween(customerId, start, end);
+    public List<OrderResponse> listOrders(ListOrdersRequest request) {
+        var orders = orderRepository.findByCustomerIdAndCreateDateBetween(request.customerId(), request.start(), request.end());
+        return orderMapper.toDtoList(orders);
     }
-    public List<Order> getPendingOrders() {
-        return orderRepository.findByStatus(OrderStatus.PENDING);
+
+    public List<OrderResponse> listPendingOrders() {
+        return orderMapper.toDtoList(orderRepository.findByStatus(OrderStatus.PENDING));
     }
 }
-

@@ -1,63 +1,51 @@
 package com.brokerage.core.controller;
 
 
-
-import com.brokerage.core.controller.dto.OrderRequestDto;
-import com.brokerage.core.controller.dto.OrderResponseDto;
-import com.brokerage.core.controller.mapper.OrderMapper;
-import com.brokerage.core.model.Order;
+import com.brokerage.core.constants.SuccessKeys;
+import com.brokerage.core.controller.dto.CreateOrderRequest;
+import com.brokerage.core.controller.dto.ListOrdersRequest;
+import com.brokerage.core.response.BaseResponse;
 import com.brokerage.core.service.OrderService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders")
-@RequiredArgsConstructor
-public class OrderController {
+public class OrderController extends BaseResponse {
 
     private final OrderService orderService;
-    private final OrderMapper orderMapper;
+
+    public OrderController(MessageSource messageSource, OrderService orderService) {
+        super(messageSource);
+        this.orderService = orderService;
+    }
 
     @PostMapping
-    public ResponseEntity<OrderResponseDto> createOrder(@Valid @RequestBody OrderRequestDto dto) {
-        // Service still enforces validation + business logic
-        Order order = orderService.createOrder(
-                dto.customerId(),
-                dto.assetName(),
-                dto.side(),
-                dto.size(),
-                dto.price()
-        );
-        return ResponseEntity.ok(orderMapper.toDto(order));
+    public ResponseEntity<?> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        var result = orderService.createOrder(request);
+        return created(SuccessKeys.ORDER_CREATED, result);
     }
 
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<Void> cancelOrder(@PathVariable UUID orderId) {
+    public ResponseEntity<?> cancelOrder(@PathVariable UUID orderId) {
         orderService.cancelOrder(orderId);
-        return ResponseEntity.noContent().build();
+        return noContent(SuccessKeys.ORDER_CANCELED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<OrderResponseDto>> listOrders(
-            @RequestParam UUID customerId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end
-    ) {
-        var orders = orderService.listOrders(customerId, start, end);
-        return ResponseEntity.ok(orderMapper.toDtoList(orders));
+    @PostMapping("/list")
+    public ResponseEntity<?> listOrders(@Valid @RequestBody ListOrdersRequest request) {
+        var result = orderService.listOrders(request);
+        return ok(SuccessKeys.GENERIC_SUCCESS, result);
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<List<OrderResponseDto>> listPendingOrders() {
-        var pending = orderService.getPendingOrders();
-        return ResponseEntity.ok(orderMapper.toDtoList(pending));
+    public ResponseEntity<?> listPendingOrders() {
+        var result = orderService.listPendingOrders();
+        return ok(SuccessKeys.GENERIC_SUCCESS, result);
     }
 }
 

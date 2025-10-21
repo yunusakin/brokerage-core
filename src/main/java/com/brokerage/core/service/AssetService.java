@@ -1,12 +1,13 @@
 package com.brokerage.core.service;
 
-import com.brokerage.core.model.Asset;
+import com.brokerage.core.constants.ErrorKeys;
+import com.brokerage.core.controller.dto.AssetDto;
+import com.brokerage.core.controller.mapper.AssetMapper;
+import com.brokerage.core.exception.ResourceNotFoundException;
 import com.brokerage.core.repository.AssetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,28 +16,13 @@ import java.util.UUID;
 public class AssetService {
 
     private final AssetRepository assetRepository;
+    private final AssetMapper assetMapper;
 
-    public List<Asset> getAssetsByCustomer(UUID customerId) {
-        return assetRepository.findByCustomerId(customerId);
-    }
-
-    public Asset getAsset(UUID customerId, String assetName) {
-        return assetRepository.findByCustomerIdAndAssetName(customerId, assetName)
-                .orElseThrow(() -> new IllegalArgumentException("Asset not found: " + assetName));
-    }
-
-    @Transactional
-    public void updateUsableSize(UUID customerId, String assetName, BigDecimal delta) {
-        Asset asset = getAsset(customerId, assetName);
-        asset.setUsableSize(asset.getUsableSize().add(delta));
-        assetRepository.save(asset);
-    }
-
-    @Transactional
-    public void updateSize(UUID customerId, String assetName, BigDecimal delta) {
-        Asset asset = getAsset(customerId, assetName);
-        asset.setSize(asset.getSize().add(delta));
-        assetRepository.save(asset);
+    public List<AssetDto> getAssetsByCustomer(UUID customerId) {
+        var assets = assetRepository.findByCustomerId(customerId);
+        if (assets.isEmpty()) {
+            throw new ResourceNotFoundException(ErrorKeys.ASSET_NOT_FOUND);
+        }
+        return assetMapper.toDtoList(assets);
     }
 }
-

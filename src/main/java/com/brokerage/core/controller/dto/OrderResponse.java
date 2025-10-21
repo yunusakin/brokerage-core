@@ -8,11 +8,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record OrderResponseDto(
+public record OrderResponse(
         UUID id,
         UUID customerId,
         String assetName,
-        OrderSide side,
+        OrderSide orderSide,
         BigDecimal size,
         BigDecimal price,
         OrderStatus status,

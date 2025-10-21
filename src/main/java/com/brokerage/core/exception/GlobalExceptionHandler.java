@@ -1,7 +1,6 @@
 package com.brokerage.core.exception;
 
 import com.brokerage.core.constants.ErrorKeys;
-import com.brokerage.core.exception.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -11,7 +10,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -22,57 +24,42 @@ public class GlobalExceptionHandler {
         this.messageSource = messageSource;
     }
 
-    /**
-     * Resolve a message key to a localized string.
-     */
     private String localize(String key, Object... args) {
         Locale locale = LocaleContextHolder.getLocale();
         return messageSource.getMessage(key, args, key, locale);
     }
 
-    // ----------------------------------------------------------------------
-    // BusinessException
-    // ----------------------------------------------------------------------
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBusiness(BusinessException ex) {
-        String message = localize(ex.getMessage());
-        ApiResponse<Void> response = ApiResponse.error(message, HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.badRequest().body(response);
+    private ResponseEntity<Map<String, Object>> build(HttpStatus status, String messageKey) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("success", false);
+        body.put("status", status.value());
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", localize(messageKey));
+        return ResponseEntity.status(status).body(body);
     }
 
-    // ----------------------------------------------------------------------
-    // ResourceNotFoundException
-    // ----------------------------------------------------------------------
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex) {
-        String message = localize(ex.getMessage());
-        ApiResponse<Void> response = ApiResponse.error(message, HttpStatus.NOT_FOUND.value());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    // ----------------------------------------------------------------------
-    // Validation Errors (@Valid)
-    // ----------------------------------------------------------------------
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Map<String, Object>> handleBusiness(BusinessException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         String fieldError = ex.getBindingResult().getFieldErrors().stream()
-                .map(err -> err.getField() + " " + err.getDefaultMessage())
                 .findFirst()
-                .orElse("Validation failed");
-
-        String message = localize(ErrorKeys.VALIDATION_FAILED, fieldError);
-        ApiResponse<Void> response = ApiResponse.error(message, HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.badRequest().body(response);
+                .map(e -> e.getField() + " " + e.getDefaultMessage())
+                .orElse(localize(ErrorKeys.VALIDATION_FAILED));
+        return build(HttpStatus.BAD_REQUEST, fieldError);
     }
 
-    // ----------------------------------------------------------------------
-    // Generic / Unexpected Exceptions
-    // ----------------------------------------------------------------------
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception ex, HttpServletRequest request) {
-        // Optional: log unexpected errors here
-        String message = localize(ErrorKeys.INTERNAL_ERROR);
-        ApiResponse<Void> response = ApiResponse.error(message, HttpStatus.INTERNAL_SERVER_ERROR.value());
-        return ResponseEntity.internalServerError().body(response);
+    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex, HttpServletRequest req) {
+        ex.printStackTrace();
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, ErrorKeys.INTERNAL_ERROR);
     }
 }

@@ -1,28 +1,32 @@
 package com.brokerage.core.controller;
 
 
-import com.brokerage.core.controller.dto.AssetDto;
-import com.brokerage.core.controller.mapper.AssetMapper;
+import com.brokerage.core.constants.SuccessKeys;
+import com.brokerage.core.response.BaseResponse;
 import com.brokerage.core.service.AssetService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/assets")
-@RequiredArgsConstructor
-public class AssetController {
+public class AssetController extends BaseResponse {
 
     private final AssetService assetService;
-    private final AssetMapper assetMapper;
 
-    @GetMapping
-    public ResponseEntity<List<AssetDto>> getAssets(@RequestParam UUID customerId) {
-        var assets = assetService.getAssetsByCustomer(customerId);
-        return ResponseEntity.ok(assetMapper.toDtoList(assets));
+    public AssetController(MessageSource messageSource, AssetService assetService) {
+        super(messageSource);
+        this.assetService = assetService;
+    }
+
+    @GetMapping("/{customerId}")
+    public ResponseEntity<?> getAssets(@PathVariable UUID customerId) {
+        var result = assetService.getAssetsByCustomer(customerId);
+        return ok(SuccessKeys.ASSET_FETCHED, result);
     }
 }
 

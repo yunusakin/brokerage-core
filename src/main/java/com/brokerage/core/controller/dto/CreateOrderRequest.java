@@ -6,10 +6,10 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record OrderRequestDto(
+public record CreateOrderRequest(
         @NotNull UUID customerId,
         @NotBlank String assetName,
-        @NotNull OrderSide side,
+        @NotNull OrderSide orderSide,
         @DecimalMin("0.0001") BigDecimal size,
         @DecimalMin("0.01") BigDecimal price
 ) {}

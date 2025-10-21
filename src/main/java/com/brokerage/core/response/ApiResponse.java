@@ -1,4 +1,4 @@
-package com.brokerage.core.exception.response;
+package com.brokerage.core.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
