@@ -40,6 +40,10 @@ public class OrderService {
         BigDecimal price = dto.price();
         OrderSide side = dto.orderSide();
 
+        if (TRY_ASSET.equalsIgnoreCase(assetName)) {
+            throw new BusinessException(ErrorKeys.TRY_NOT_TRADABLE);
+        }
+
         if (side == OrderSide.BUY) {
             Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(customerId, TRY_ASSET)
                     .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.TRY_NOT_FOUND));

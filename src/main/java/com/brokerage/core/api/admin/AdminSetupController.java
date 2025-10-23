@@ -19,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/setup")
 @RequiredArgsConstructor
-@Profile({"dev", "local", "test"})
+@Profile({"dev","test"})
 public class AdminSetupController {
 
     private final CustomerRepository customerRepository;

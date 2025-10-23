@@ -62,23 +62,29 @@ public class AuthService {
     }
 
     public Map<String, Object> refresh(String refreshToken) {
-        if (jwt.isExpired(refreshToken, true)) throw new RuntimeException("Refresh token expired");
-        String username = jwt.extractUsername(refreshToken, true);
-        String jti = jwt.extractJti(refreshToken);
+        try {
+            if (jwt.isExpired(refreshToken, true)) throw new BadCredentialsException("expired");
+            String username = jwt.extractUsername(refreshToken, true);
+            String jti = jwt.extractJti(refreshToken);
 
-        Customer c = customerRepo.findByUsername(username).orElseThrow();
+            Customer customer = customerRepo.findByUsername(username).orElseThrow();
 
-        var stored = refreshRepo.findByJtiAndCustomerId(jti, c.getId())
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-        if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh token invalid");
+            var stored = refreshRepo.findByJtiAndCustomerId(jti, customer.getId())
+                    .orElseThrow(() -> new BadCredentialsException("invalid"));
+            if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
+                throw new BadCredentialsException("revoked_or_expired");
+            }
+
+            stored.setRevoked(true);
+            refreshRepo.save(stored);
+
+            String role = "ROLE_" + customer.getRole().name();
+            return issuePair(customer, role);
+        } catch (BadCredentialsException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new BadCredentialsException("invalid_refresh", ex);
         }
-
-        stored.setRevoked(true);
-        refreshRepo.save(stored);
-
-        String role = "ROLE_" + c.getRole().name();
-        return issuePair(c, role);
     }
 
     public void logout(String refreshToken) {

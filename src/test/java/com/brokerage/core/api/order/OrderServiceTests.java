@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,14 +35,14 @@ class OrderServiceTests {
 
     private static final String TRY = "TRY";
 
-    private Asset seedAsset(UUID customerId, String assetName, BigDecimal size, BigDecimal usable) {
+    private void seedAsset(UUID customerId, String assetName, BigDecimal size, BigDecimal usable) {
         Asset a = Asset.builder()
                 .customerId(customerId)
                 .assetName(assetName)
                 .size(size)
                 .usableSize(usable)
                 .build();
-        return assetRepository.save(a);
+        assetRepository.save(a);
     }
 
     private CreateOrderRequest req(UUID customerId, String asset, OrderSide side, BigDecimal size, BigDecimal price) {
@@ -168,6 +167,16 @@ class OrderServiceTests {
         LocalDateTime now = LocalDateTime.now();
         var list = orderService.listOrders(new ListOrdersRequest(customerId, now.minusDays(1), now.plusDays(1)));
         assertThat(list).hasSize(2);
+    }
+
+    @Test
+    @Transactional
+    void createOrder_withTRY_asset_shouldFail() {
+        UUID customerId = UUID.randomUUID();
+        seedAsset(customerId, TRY, bd(1000), bd(1000));
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                orderService.createOrder(req(customerId, "TRY", OrderSide.BUY, bd(1), bd(1))));
+        assertThat(ex.getMessage()).isEqualTo(com.brokerage.core.base.constants.ErrorKeys.TRY_NOT_TRADABLE);
     }
 
     @Test

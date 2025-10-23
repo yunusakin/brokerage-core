@@ -5,10 +5,13 @@ A Spring Boot backend API for a brokerage firm. Employees can create, list, canc
 ## Build and Run
 
 - Prerequisites: Java 21, Maven wrapper (included)
-- Start the app:
-  - Linux/Mac: `./mvnw spring-boot:run`
-  - Windows: `mvnw.cmd spring-boot:run`
-- Default profile: `dev` (H2 console enabled at `/h2-console`)
+  - Start the app:
+    - `mvn spring-boot:run`
+- Profiles:
+  - `dev` (default for local run via `-Dspring-boot.run.profiles=dev`) – H2 in‑memory, H2 console enabled at `/h2-console`.
+  - `test` - H2 in‑memory, console disabled.
+  - `preprod` – external DB via env, ddl-auto validate.
+  - `prod` – external DB via env, ddl-auto validate.
 - Default port: `8080`
 
 H2 datasource: `jdbc:h2:mem:stock_db` (in-memory)
@@ -38,10 +41,11 @@ H2 datasource: `jdbc:h2:mem:stock_db` (in-memory)
 ```
 { "username": "cust1", "password": "custpass", "role": "CUSTOMER" }
 ```
-- Seed a TRY asset for that customer directly using the H2 console, or by extending the API (TRY is stored in the asset table like any other asset). Example insert via H2 console:
+- Seed TRY via dev-only endpoint (easier with Postman):
+  - Endpoint: `POST /api/setup/assets/upsert` (requires ADMIN token)
+  - Body:
 ```
-INSERT INTO assets(id, customer_id, asset_name, size, usable_size)
-VALUES (random_uuid(), '00000000-0000-0000-0000-000000000001', 'TRY', 100000, 100000);
+{ "customerId": "<uuid>", "assetName": "TRY", "size": 100000, "usableSize": 100000 }
 ```
 
 ## Endpoints
@@ -87,17 +91,16 @@ All business endpoints require `ROLE_ADMIN` by default. JWT is required as `Auth
 - Match order (admin):
   - BUY: reduce TRY `size` by `size * price`; increase bought asset `size` and `usableSize`.
   - SELL: reduce sold asset `size`; increase TRY `size` and `usableSize` by `size * price`.
+  - Orders on `assetName = TRY` are rejected (TRY is quote currency, not tradable).
 
 ## Tests
 
 Run all tests:
-- Linux/Mac: `./mvnw test`
-- Windows: `mvnw.cmd test`
+-  ` mvn test`
 
 The suite includes focused service tests for order creation, cancellation, matching, and listing logic using H2.
 
 ## Notes
 
-- Profiles `dev/local/test` enable the admin setup endpoint.
-- For production, create admin/customer users using a secure provisioning process and disable the setup endpoint.
+- Profiles `dev/test` enable the admin setup endpoint.
 - You can explore the schema in H2 console at `/h2-console` with JDBC URL `jdbc:h2:mem:stock_db`.

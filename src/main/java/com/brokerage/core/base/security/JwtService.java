@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -13,10 +14,27 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    private static final String ACCESS_SECRET  = "access_secret_change_me_256_bits_min_access";
-    private static final String REFRESH_SECRET = "refresh_secret_change_me_256_bits_min_refresh";
-    private static final long ACCESS_TTL_MS    = 1000L * 60 * 15;           // 15 min
-    private static final long REFRESH_TTL_MS   = 1000L * 60 * 60 * 24 * 7;  // 7 days
+
+    private final String accessSecret;
+    private final String refreshSecret;
+    private final long accessTtlMs;
+    private final long refreshTtlMs;
+
+    public JwtService(
+            @Value("${security.jwt.access-secret}")
+            String accessSecret,
+            @Value("${security.jwt.refresh-secret}")
+            String refreshSecret,
+            @Value("${security.jwt.access-ttl-ms}")
+            long accessTtlMs,
+            @Value("${security.jwt.refresh-ttl-ms}")
+            long refreshTtlMs
+    ) {
+        this.accessSecret = accessSecret;
+        this.refreshSecret = refreshSecret;
+        this.accessTtlMs = accessTtlMs;
+        this.refreshTtlMs = refreshTtlMs;
+    }
 
     private Key key(String secret) { return Keys.hmacShaKeyFor(secret.getBytes()); }
 
@@ -33,7 +51,7 @@ public class JwtService {
 
     public <T> T extractClaim(String token, Function<Claims, T> resolver, boolean refresh) {
         return resolver.apply(Jwts.parserBuilder()
-                .setSigningKey(refresh ? key(REFRESH_SECRET) : key(ACCESS_SECRET))
+                .setSigningKey(refresh ? key(refreshSecret) : key(accessSecret))
                 .build()
                 .parseClaimsJws(token)
                 .getBody());
@@ -44,8 +62,8 @@ public class JwtService {
                 .setClaims(Map.of("role", role))
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TTL_MS))
-                .signWith(key(ACCESS_SECRET), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + accessTtlMs))
+                .signWith(key(accessSecret), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -54,17 +72,15 @@ public class JwtService {
                 .setClaims(Map.of("role", role, "jti", jti))
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TTL_MS))
-                .signWith(key(REFRESH_SECRET), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTtlMs))
+                .signWith(key(refreshSecret), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // compatibility helper for access tokens (refresh=false)
     public boolean isTokenValid(String token, String username) {
         return isTokenValid(token, username, false);
     }
 
-    // explicit variant for access/refresh
     public boolean isTokenValid(String token, String username, boolean refresh) {
         try {
             String sub = extractUsername(token, refresh);

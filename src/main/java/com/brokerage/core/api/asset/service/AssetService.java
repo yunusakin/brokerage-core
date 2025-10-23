@@ -21,9 +21,6 @@ public class AssetService {
 
     public List<AssetDto> getAssetsByCustomer(UUID customerId) {
         var assets = assetRepository.findByCustomerId(customerId);
-        if (assets.isEmpty()) {
-            throw new ResourceNotFoundException(ErrorKeys.ASSET_NOT_FOUND);
-        }
         return assetMapper.toDtoList(assets);
     }
 }

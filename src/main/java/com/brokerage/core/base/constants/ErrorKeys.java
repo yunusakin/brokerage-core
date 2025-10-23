@@ -15,6 +15,7 @@ public final class ErrorKeys {
      */
     public static final String INSUFFICIENT_BALANCE = "error.business.insufficient_balance";
     public static final String ORDER_NOT_PENDING = "error.business.order_not_pending";
+    public static final String TRY_NOT_TRADABLE = "error.business.try_not_tradable";
 
     /**
      *  Resources
