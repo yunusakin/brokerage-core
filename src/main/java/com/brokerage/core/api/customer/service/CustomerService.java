@@ -8,6 +8,7 @@ import com.brokerage.core.api.customer.model.Customer;
 import com.brokerage.core.api.customer.respository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public CustomerDto getCustomer(UUID id) {
         var c = customerRepository.findById(id)
@@ -25,7 +27,12 @@ public class CustomerService {
     }
 
     public CustomerDto createCustomer(CustomerDto customerDto) {
-        var saved = customerRepository.save(customerMapper.toEntity(customerDto));
+        Customer toSave = customerMapper.toEntity(customerDto);
+        toSave.setPassword(passwordEncoder.encode(toSave.getPassword()));
+        if (toSave.getRole() == null) {
+            toSave.setRole(com.brokerage.core.base.enumaration.Role.CUSTOMER);
+        }
+        var saved = customerRepository.save(toSave);
         return customerMapper.toDto(saved);
     }
 }
