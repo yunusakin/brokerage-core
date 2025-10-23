@@ -1,0 +1,798 @@
+{
+	"info": {
+		"_postman_id": "7e66010c-6d2f-4dab-ad0b-bf2dc7f24aa8",
+		"name": "BrokerageCore API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14141238"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Register success', () => pm.response.to.have.status(201));",
+									"const json = pm.response.json();",
+									"pm.environment.set('accessToken', json.data.accessToken);",
+									"pm.environment.set('refreshToken', json.data.refreshToken);",
+									"pm.environment.set('customerId', json.data.customerId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login success', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.environment.set('accessToken', json.data.accessToken);",
+									"pm.environment.set('refreshToken', json.data.refreshToken);",
+									"pm.environment.set('customerId', json.data.customerId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Login (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Admin login success', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.environment.set('adminAccessToken', json.data.accessToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Admin (dev only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"{{admin_username}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/setup/admin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"setup",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Refresh success', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.environment.set('accessToken', json.data.accessToken);",
+									"pm.environment.set('refreshToken', json.data.refreshToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/refresh?refreshToken={{refreshToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							],
+							"query": [
+								{
+									"key": "refreshToken",
+									"value": "{{refreshToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token (Fail - Invalid)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Refresh invalid returns 401', () => pm.response.to.have.status(401));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/refresh?refreshToken=invalid",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							],
+							"query": [
+								{
+									"key": "refreshToken",
+									"value": "invalid"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token (Fail - Expired)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Refresh expired returns 401', () => pm.response.to.have.status(401));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/refresh?refreshToken={{expiredRefreshToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							],
+							"query": [
+								{
+									"key": "refreshToken",
+									"value": "{{expiredRefreshToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Logout success', () => pm.response.to.have.status(200));",
+									"pm.environment.unset('accessToken');",
+									"pm.environment.unset('refreshToken');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout?refreshToken={{refreshToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							],
+							"query": [
+								{
+									"key": "refreshToken",
+									"value": "{{refreshToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Order created', () => pm.response.to.have.status(201));",
+									"const json = pm.response.json();",
+									"pm.environment.set('orderId', json.data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"assetName\": \"AAPL\",\n  \"orderSide\": \"BUY\",\n  \"size\": 5,\n  \"price\": 100.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order (Fail - Insufficient TRY)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Insufficient balance', () => pm.response.to.have.status(400));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"assetName\": \"AAPL\",\n  \"orderSide\": \"BUY\",\n  \"size\": 999999,\n  \"price\": 100000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Match Order (Fail - Non Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Forbidden for non-admin', () => pm.response.to.have.status(403));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/match",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"match"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Match Order (Success - Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Admin can match order', () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAccessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/match",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}",
+								"match"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pending Orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAccessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/pending",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"pending"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Matched (Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Cancel matched not allowed', () => pm.response.to.have.status(400));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"{{orderId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Order List",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer  {{adminAccessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customerId\": \"{{customerId}}\",\n    \"start\": \"2025-01-01T00:00:00\",\n    \"end\": \"2025-12-31T23:59:59\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/list",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"list"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{accessToken}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "Customers",
+			"item": [
+				{
+					"name": "Get Customer (Success)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/customers/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"customers",
+								"{{customerId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{accessToken}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "Assets",
+			"item": [
+				{
+					"name": "Get Assets (Success)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/assets/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"assets",
+								"{{customerId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Assets (Fail - Expired Access Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Expired access token rejected', () => pm.response.to.have.status(401));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{expiredAccessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/assets/{{customerId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"assets",
+								"{{customerId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Seed TRY (Admin, dev only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Seed TRY success', () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminAccessToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"assetName\": \"TRY\",\n  \"size\": 100000,\n  \"usableSize\": 100000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/setup/assets/upsert",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"setup",
+								"assets",
+								"upsert"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{accessToken}}",
+						"type": "string"
+					}
+				]
+			}
+		}
+	]
+}
