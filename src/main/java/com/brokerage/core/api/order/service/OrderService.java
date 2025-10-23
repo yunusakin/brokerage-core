@@ -109,6 +109,17 @@ public class OrderService {
         }
 
         if (order.getOrderSide() == OrderSide.BUY) {
+            Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), TRY_ASSET)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.TRY_NOT_FOUND));
+
+            BigDecimal totalCost = order.getSize().multiply(order.getPrice());
+            if (tryAsset.getSize().compareTo(totalCost) < 0) {
+                throw new BusinessException(ErrorKeys.INSUFFICIENT_BALANCE);
+            }
+
+            tryAsset.setSize(tryAsset.getSize().subtract(totalCost));
+            assetRepository.save(tryAsset);
+
             Asset asset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())
                     .orElseGet(() -> Asset.builder()
                             .customerId(order.getCustomerId())
@@ -121,8 +132,23 @@ public class OrderService {
             asset.setUsableSize(asset.getUsableSize().add(order.getSize()));
             assetRepository.save(asset);
         } else {
+            Asset asset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), order.getAssetName())
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.ASSET_NOT_FOUND));
+
+            if (asset.getSize().compareTo(order.getSize()) < 0) {
+                throw new BusinessException(ErrorKeys.INSUFFICIENT_BALANCE);
+            }
+
+            asset.setSize(asset.getSize().subtract(order.getSize()));
+            assetRepository.save(asset);
+
             Asset tryAsset = assetRepository.findByCustomerIdAndAssetName(order.getCustomerId(), TRY_ASSET)
-                    .orElseThrow(() -> new ResourceNotFoundException(ErrorKeys.TRY_NOT_FOUND));
+                    .orElseGet(() -> Asset.builder()
+                            .customerId(order.getCustomerId())
+                            .assetName(TRY_ASSET)
+                            .size(BigDecimal.ZERO)
+                            .usableSize(BigDecimal.ZERO)
+                            .build());
 
             BigDecimal totalIncome = order.getSize().multiply(order.getPrice());
             tryAsset.setSize(tryAsset.getSize().add(totalIncome));

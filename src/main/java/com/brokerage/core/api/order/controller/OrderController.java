@@ -25,22 +25,26 @@ public class OrderController extends BaseResponse {
         this.orderService = orderService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<?> createOrder(@Valid @RequestBody CreateOrderRequest request) {
         return created(SuccessKeys.ORDER_CREATED, orderService.createOrder(request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{orderId}")
     public ResponseEntity<?> cancelOrder(@PathVariable UUID orderId) {
         orderService.cancelOrder(orderId);
         return noContent(SuccessKeys.ORDER_CANCELED);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/list")
     public ResponseEntity<?> listOrders(@Valid @RequestBody ListOrdersRequest request) {
         return ok(SuccessKeys.GENERIC_SUCCESS, orderService.listOrders(request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/pending")
     public ResponseEntity<?> listPendingOrders() {
         return ok(SuccessKeys.GENERIC_SUCCESS, orderService.listPendingOrders());
