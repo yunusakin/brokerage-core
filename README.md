@@ -6,8 +6,7 @@ A Spring Boot backend API for a brokerage firm. Employees can create, list, canc
 
 - Prerequisites: Java 21, Maven wrapper (included)
 - Start the app:
-  - Linux/Mac: `./mvnw spring-boot:run`
-  - Windows: `mvnw.cmd spring-boot:run`
+  - `./mvn spring-boot:run`
 - Default profile: `dev` (H2 console enabled at `/h2-console`)
 - Default port: `8080`
 
@@ -91,13 +90,11 @@ All business endpoints require `ROLE_ADMIN` by default. JWT is required as `Auth
 ## Tests
 
 Run all tests:
-- Linux/Mac: `./mvnw test`
-- Windows: `mvnw.cmd test`
+- `./mvn test`
 
 The suite includes focused service tests for order creation, cancellation, matching, and listing logic using H2.
 
 ## Notes
 
 - Profiles `dev/local/test` enable the admin setup endpoint.
-- For production, create admin/customer users using a secure provisioning process and disable the setup endpoint.
 - You can explore the schema in H2 console at `/h2-console` with JDBC URL `jdbc:h2:mem:stock_db`.
