@@ -1,4 +1,4 @@
-package com.brokerage.core.api.customer.respository;
+package com.brokerage.core.api.customer.repository;
 
 import com.brokerage.core.api.customer.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;

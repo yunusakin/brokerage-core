@@ -4,7 +4,7 @@ import com.brokerage.core.api.auth.dto.AuthRequest;
 import com.brokerage.core.api.auth.model.RefreshToken;
 import com.brokerage.core.api.auth.repository.RefreshTokenRepository;
 import com.brokerage.core.api.customer.model.Customer;
-import com.brokerage.core.api.customer.respository.CustomerRepository;
+import com.brokerage.core.api.customer.repository.CustomerRepository;
 import com.brokerage.core.base.constants.ErrorKeys;
 import com.brokerage.core.base.enumaration.Role;
 import com.brokerage.core.base.exception.BusinessException;

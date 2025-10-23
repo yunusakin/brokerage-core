@@ -1,7 +1,7 @@
 package com.brokerage.core.base.security;
 
 import com.brokerage.core.api.customer.model.Customer;
-import com.brokerage.core.api.customer.respository.CustomerRepository;
+import com.brokerage.core.api.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

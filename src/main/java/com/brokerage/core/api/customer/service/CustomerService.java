@@ -5,7 +5,7 @@ import com.brokerage.core.api.customer.dto.CustomerDto;
 import com.brokerage.core.api.customer.mapper.CustomerMapper;
 import com.brokerage.core.base.exception.ResourceNotFoundException;
 import com.brokerage.core.api.customer.model.Customer;
-import com.brokerage.core.api.customer.respository.CustomerRepository;
+import com.brokerage.core.api.customer.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;

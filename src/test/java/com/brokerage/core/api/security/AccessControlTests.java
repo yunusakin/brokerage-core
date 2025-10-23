@@ -3,7 +3,7 @@ package com.brokerage.core.api.security;
 import com.brokerage.core.api.asset.model.Asset;
 import com.brokerage.core.api.asset.repository.AssetRepository;
 import com.brokerage.core.api.customer.model.Customer;
-import com.brokerage.core.api.customer.respository.CustomerRepository;
+import com.brokerage.core.api.customer.repository.CustomerRepository;
 import com.brokerage.core.api.order.model.Order;
 import com.brokerage.core.api.order.repository.OrderRepository;
 import com.brokerage.core.base.enumaration.OrderSide;
@@ -92,7 +92,6 @@ class AccessControlTests {
                         .content(body))
                 .andExpect(status().isCreated());
 
-        // should be created for alice, not bob
         assertThat(orders.findAll().stream().filter(o -> o.getCustomerId().equals(aliceId)).count()).isEqualTo(1);
         assertThat(orders.findAll().stream().filter(o -> o.getCustomerId().equals(bobId)).count()).isEqualTo(0);
     }

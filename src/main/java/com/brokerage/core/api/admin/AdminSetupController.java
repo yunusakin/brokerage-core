@@ -2,7 +2,7 @@ package com.brokerage.core.api.admin;
 
 import com.brokerage.core.api.admin.dto.AdminCreateRequest;
 import com.brokerage.core.api.customer.model.Customer;
-import com.brokerage.core.api.customer.respository.CustomerRepository;
+import com.brokerage.core.api.customer.repository.CustomerRepository;
 import com.brokerage.core.base.enumaration.Role;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
