@@ -23,5 +23,9 @@ public final class ErrorKeys {
     public static final String ASSET_NOT_FOUND = "error.resource.asset_not_found";
     public static final String ORDER_NOT_FOUND = "error.resource.order_not_found";
     public static final String TRY_NOT_FOUND = "error.resource.try_not_found";
+
+    public static final String USER_NOT_FOUND = "error.auth.user_not_found";
+    public static final String BAD_CREDENTIALS = "error.auth.bad_credentials";
+    public static final String ACCESS_DENIED   = "error.security.access_denied";
 }
 

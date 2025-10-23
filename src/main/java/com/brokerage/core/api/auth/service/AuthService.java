@@ -4,10 +4,14 @@ import com.brokerage.core.api.auth.model.RefreshToken;
 import com.brokerage.core.api.auth.repository.RefreshTokenRepository;
 import com.brokerage.core.api.customer.model.Customer;
 import com.brokerage.core.api.customer.respository.CustomerRepository;
+import com.brokerage.core.base.constants.ErrorKeys;
 import com.brokerage.core.base.enumaration.Role;
+import com.brokerage.core.base.exception.BusinessException;
+import com.brokerage.core.base.exception.ResourceNotFoundException;
 import com.brokerage.core.base.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,7 +36,7 @@ public class AuthService {
         }
         Customer c = Customer.builder()
                 .username(username)
-                .password(passwordEncoder.encode(password)) // 🔒 hashed in DB
+                .password(passwordEncoder.encode(password))
                 .role(Role.CUSTOMER)
                 .build();
         customerRepo.save(c);
@@ -40,29 +44,35 @@ public class AuthService {
     }
 
     public Map<String, Object> login(String username, String password) {
-        authManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        Customer c = customerRepo.findByUsername(username).orElseThrow();
+        var opt = customerRepo.findByUsername(username);
+        if (opt.isEmpty()) {
+            throw new ResourceNotFoundException(ErrorKeys.USER_NOT_FOUND);
+        }
+
+        try {
+            authManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        } catch (BadCredentialsException ex) {
+            throw new BusinessException(ErrorKeys.BAD_CREDENTIALS);
+        }
+
+        var c = opt.get();
         String role = "ROLE_" + c.getRole().name();
         return issuePair(c, role);
     }
 
     public Map<String, Object> refresh(String refreshToken) {
-        // 1) Validate token cryptographically / expiry
         if (jwt.isExpired(refreshToken, true)) throw new RuntimeException("Refresh token expired");
         String username = jwt.extractUsername(refreshToken, true);
         String jti = jwt.extractJti(refreshToken);
 
-        // 2) Resolve customer by username (authoritative)
         Customer c = customerRepo.findByUsername(username).orElseThrow();
 
-        // 3) Check stored token record (by jti + customerId) and state
         var stored = refreshRepo.findByJtiAndCustomerId(jti, c.getId())
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
             throw new RuntimeException("Refresh token invalid");
         }
 
-        // 4) Rotate: revoke old, issue new pair
         stored.setRevoked(true);
         refreshRepo.save(stored);
 
@@ -73,7 +83,6 @@ public class AuthService {
     public void logout(String refreshToken) {
         try {
             String jti = jwt.extractJti(refreshToken);
-            // if you want stricter logout, also compare username→customerId as above
             refreshRepo.findByJti(jti).ifPresent(t -> { t.setRevoked(true); refreshRepo.save(t); });
         } catch (Exception ignored) {}
     }

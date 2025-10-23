@@ -26,4 +26,10 @@ public final class SuccessKeys {
      *  Asset
      */
     public static final String ASSET_FETCHED = "success.asset.fetched";
+
+    /**
+     *  Authentication
+     */
+    public static final String USER_REGISTERED = "success.user.registered";
+    public static final String USER_LOGGED_IN  = "success.user.logged_in";
 }
