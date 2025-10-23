@@ -92,8 +92,6 @@ All business endpoints require `ROLE_ADMIN` by default. JWT is required as `Auth
 Run all tests:
 - `./mvn test`
 
-The suite includes focused service tests for order creation, cancellation, matching, and listing logic using H2.
-
 ## Notes
 
 - Profiles `dev/local/test` enable the admin setup endpoint.
