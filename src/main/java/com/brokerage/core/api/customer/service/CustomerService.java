@@ -24,8 +24,8 @@ public class CustomerService {
         return customerMapper.toDto(c);
     }
 
-    public CustomerDto createCustomer(Customer customer) {
-        var saved = customerRepository.save(customer);
+    public CustomerDto createCustomer(CustomerDto customerDto) {
+        var saved = customerRepository.save(customerMapper.toEntity(customerDto));
         return customerMapper.toDto(saved);
     }
 }

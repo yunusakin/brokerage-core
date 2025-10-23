@@ -18,6 +18,7 @@ public class AssetService {
     private final AssetRepository assetRepository;
     private final AssetMapper assetMapper;
 
+
     public List<AssetDto> getAssetsByCustomer(UUID customerId) {
         var assets = assetRepository.findByCustomerId(customerId);
         if (assets.isEmpty()) {

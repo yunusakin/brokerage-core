@@ -1,5 +1,6 @@
 package com.brokerage.core.api.customer.controller;
 
+import com.brokerage.core.api.customer.dto.CustomerDto;
 import com.brokerage.core.base.constants.SuccessKeys;
 import com.brokerage.core.api.customer.model.Customer;
 import com.brokerage.core.base.response.BaseResponse;
@@ -24,14 +25,12 @@ public class CustomerController extends BaseResponse {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getCustomer(@PathVariable UUID id) {
-        var result = customerService.getCustomer(id);
-        return ok(SuccessKeys.GENERIC_SUCCESS, result);
+        return ok(SuccessKeys.GENERIC_SUCCESS, customerService.getCustomer(id));
     }
 
     @PostMapping
-    public ResponseEntity<?> createCustomer(@Valid @RequestBody Customer customer) {
-        var result = customerService.createCustomer(customer);
-        return created(SuccessKeys.CUSTOMER_CREATED, result);
+    public ResponseEntity<?> createCustomer(@Valid @RequestBody CustomerDto customerDto) {
+        return created(SuccessKeys.CUSTOMER_CREATED, customerService.createCustomer(customerDto));
     }
 }
 

@@ -1,8 +1,10 @@
 package com.brokerage.core.api.auth.controller;
 
+import com.brokerage.core.api.auth.dto.AuthRequest;
 import com.brokerage.core.api.auth.service.AuthService;
 import com.brokerage.core.base.constants.SuccessKeys;
 import com.brokerage.core.base.response.BaseResponse;
+import jakarta.validation.Valid;
 import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,17 +21,14 @@ public class AuthController extends BaseResponse {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestParam String username,
-                                      @RequestParam String password,
-                                      @RequestParam(required = false) String fullName) {
-        var result = authService.register(username, password, fullName);
+    public ResponseEntity<?> register(@Valid @RequestBody AuthRequest authRequest) {
+        var result = authService.register(authRequest);
         return created(SuccessKeys.USER_REGISTERED, result);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username,
-                                   @RequestParam String password) {
-        var result = authService.login(username, password);
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest authRequest) {
+        var result = authService.login(authRequest);
         return ok(SuccessKeys.USER_LOGGED_IN, result);
     }
 

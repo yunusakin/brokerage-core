@@ -1,5 +1,6 @@
 package com.brokerage.core.api.auth.service;
 
+import com.brokerage.core.api.auth.dto.AuthRequest;
 import com.brokerage.core.api.auth.model.RefreshToken;
 import com.brokerage.core.api.auth.repository.RefreshTokenRepository;
 import com.brokerage.core.api.customer.model.Customer;
@@ -30,27 +31,27 @@ public class AuthService {
     private final JwtService jwt;
     private final AuthenticationManager authManager;
 
-    public Map<String, Object> register(String username, String password, String fullName) {
-        if (customerRepo.existsByUsername(username)) {
+    public Map<String, Object> register(AuthRequest authRequest) {
+        if (customerRepo.existsByUsername(authRequest.username())) {
             throw new RuntimeException("Username already exists!");
         }
         Customer c = Customer.builder()
-                .username(username)
-                .password(passwordEncoder.encode(password))
+                .username(authRequest.username())
+                .password(passwordEncoder.encode(authRequest.password()))
                 .role(Role.CUSTOMER)
                 .build();
         customerRepo.save(c);
         return issuePair(c, "ROLE_CUSTOMER");
     }
 
-    public Map<String, Object> login(String username, String password) {
-        var opt = customerRepo.findByUsername(username);
+    public Map<String, Object> login(AuthRequest authRequest) {
+        var opt = customerRepo.findByUsername(authRequest.username());
         if (opt.isEmpty()) {
             throw new ResourceNotFoundException(ErrorKeys.USER_NOT_FOUND);
         }
 
         try {
-            authManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            authManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.username(), authRequest.password()));
         } catch (BadCredentialsException ex) {
             throw new BusinessException(ErrorKeys.BAD_CREDENTIALS);
         }
